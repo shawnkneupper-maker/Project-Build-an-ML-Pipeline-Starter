@@ -52,52 +52,40 @@ def go(args):
 # TODO: In the code below, fill in the data type for each argument. The data type should be str, float or int. 
 # TODO: In the code below, fill in a description for each argument. The description should be a string.
 if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(description="A very basic data cleaning")
-  
-    parser.add_argument(
-        "--input_artifact", 
-        type = ## INSERT TYPE HERE: str, float or int,
-        help = ## INSERT DESCRIPTION HERE,
-        required = True
+    parser = argparse.ArgumentParser(
+        description="Clean the input dataset by filtering price and converting dates."
     )
 
     parser.add_argument(
-        "--output_artifact", 
-        type = ## INSERT TYPE HERE: str, float or int,
-        help = ## INSERT DESCRIPTION HERE,
-        required = True
+        "--input_artifact",
+        type=str,
+        help="Fully qualified name of the input artifact to download"
     )
-
     parser.add_argument(
-        "--output_type", 
-        type = ## INSERT TYPE HERE: str, float or int,
-        help = ## INSERT DESCRIPTION HERE,
-        required = True
+        "--output_artifact",
+        type=str,
+        help="Name for the cleaned dataset artifact"
     )
-
     parser.add_argument(
-        "--output_description", 
-        type = ## INSERT TYPE HERE: str, float or int,
-        help = ## INSERT DESCRIPTION HERE,
-        required = True
+        "--output_type",
+        type=str,
+        help="Type of the output artifact"
     )
-
     parser.add_argument(
-        "--min_price", 
-        type = ## INSERT TYPE HERE: str, float or int,
-        help = ## INSERT DESCRIPTION HERE,
-        required = True
+        "--output_description",
+        type=str,
+        help="Description of the cleaned dataset artifact"
     )
-
+    parser.add_argument(
+        "--min_price",
+        type=float,
+        help="Minimum price to keep in the dataset"
+    )
     parser.add_argument(
         "--max_price",
-        type = ## INSERT TYPE HERE: str, float or int,
-        help = ## INSERT DESCRIPTION HERE,
-        required = True
+        type=float,
+        help="Maximum price to keep in the dataset"
     )
 
-
     args = parser.parse_args()
-
     go(args)
