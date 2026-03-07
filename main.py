@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-"""
-Main entry point for the ML pipeline
-"""
 import mlflow
 import yaml
 import os
@@ -11,13 +7,12 @@ if __name__ == "__main__":
     with open("config.yaml") as f:
         config = yaml.safe_load(f)
 
-    # Determine which steps to run
     import hydra
     from omegaconf import DictConfig
 
     @hydra.main(config_name="config", config_path=None)
     def run_pipeline(cfg: DictConfig):
-        steps = cfg.main.steps
+        steps = cfg.main.steps  # This should be a list like ["download","basic_cleaning"]
 
         if "download" in steps:
             mlflow.run(
