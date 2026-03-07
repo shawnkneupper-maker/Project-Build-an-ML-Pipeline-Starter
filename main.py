@@ -22,18 +22,19 @@ def go(config):
     # -------------------------------------------------------
     # DOWNLOAD STEP
     # -------------------------------------------------------
-    if "download" in steps_to_execute:
-
-        _ = mlflow.run(
-            f"{components_repository}/download",
-            "main",
-            parameters={
-                "file_url": config["data"]["file_url"],
-                "artifact_name": config["data"]["artifact_name"],
-                "artifact_type": config["data"]["artifact_type"],
-                "artifact_description": config["data"]["artifact_description"],
-            },
-        )
+   if "download" in active_steps:
+    # Download file and load in W&B
+    _ = mlflow.run(
+        f"{config['main']['components_repository']}/get_data",
+        entry_point="main",
+        env_manager="conda",
+        parameters={
+            "sample": config["etl"]["sample"],
+            "artifact_name": "sample.csv",
+            "artifact_type": "raw_data",
+            "artifact_description": "Raw file as downloaded"
+        },
+    )
 
     # -------------------------------------------------------
     # BASIC CLEANING STEP
