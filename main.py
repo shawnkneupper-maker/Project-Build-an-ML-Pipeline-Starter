@@ -1,53 +1,82 @@
+import json
+
 import mlflow
-import yaml
+import tempfile
 import os
+import wandb
+import hydra
+from omegaconf import DictConfig
 
-if __name__ == "__main__":
-    # Load config
-    with open("config.yaml") as f:
-        config = yaml.safe_load(f)
+_steps = [
+    "download",
+    "basic_cleaning",
+    "data_check",
+    "data_split",
+    "train_random_forest",
+    # NOTE: We do not include this in the steps so it is not run by mistake.
+    # You first need to promote a model export to "prod" before you can run this,
+    # then you need to run this step explicitly
+#    "test_regression_model"
+]
 
-    import hydra
-    from omegaconf import DictConfig
 
-    @hydra.main(config_name="config", config_path=None)
-    def run_pipeline(cfg: DictConfig):
-        steps = cfg.main.steps  # This should be a list like ["download","basic_cleaning"]
+# This automatically reads in the configuration
+@hydra.main(version_base=None, config_name='config', config_path='.')
+def go(config: DictConfig):
 
-        if "download" in steps:
-            mlflow.run(
-                f"{cfg.main.components_repository}/get_data",
-                entry_point="main",
+    # Setup the wandb experiment. All runs will be grouped under this name
+    os.environ["WANDB_PROJECT"] = config["main"]["project_name"]
+    os.environ["WANDB_RUN_GROUP"] = config["main"]["experiment_name"]
+
+    # Steps to execute
+    steps_par = config['main']['steps']
+    active_steps = steps_par.split(",") if steps_par != "all" else _steps
+
+    # Move to a temporary directory
+    with tempfile.TemporaryDirectory() as tmp_dir:
+
+        if "download" in active_steps:
+            # Download file and load in W&B
+            _ = mlflow.run(
+                f"{config['main']['components_repository']}/get_data",
+                "main",
+                env_manager="conda",
                 parameters={
-                    "sample": cfg.data.raw_sample,
-                    "artifact_name": cfg.data.raw_artifact_name,
-                    "artifact_type": cfg.data.raw_artifact_type,
-                    "artifact_description": cfg.data.raw_artifact_description
+                    "sample": config["etl"]["sample"],
+                    "artifact_name": "sample.csv",
+                    "artifact_type": "raw_data",
+                    "artifact_description": "Raw file as downloaded"
                 },
             )
 
-        if "basic_cleaning" in steps:
+        if "basic_cleaning" in active_steps:
             mlflow.run(
-                f"{cfg.main.components_repository}/basic_cleaning",
+                os.path.join(hydra.utils.get_original_cwd(),"src","basic_cleaning"),
                 entry_point="main",
                 parameters={
-                    "input_artifact": f"{cfg.data.raw_artifact_name}:latest",
-                    "output_artifact": cfg.data.clean_artifact_name
+                    "input_artifact": "sample.csv:latest",
+                    "output_artifact": "clean_sample.csv",
+                    "output_type":"clean_sample",
+                    "output_description":"Cleans Data",
+                    "min_price": config["etl"]["min_price"],
+                    "max_price": config["etl"]["max_price"]
+
                 },
             )
 
-        if "data_check" in steps:
+        if "data_check" in active_steps:
             mlflow.run(
                 f"{cfg.main.components_repository}/data_check",
                 entry_point="main",
                 parameters={
                     "input_artifact": f"{cfg.data.clean_artifact_name}:latest",
                     "min_price": cfg.modeling.min_price,
-                    "max_price": cfg.modeling.max_price
+                    "max_price": cfg.modeling.max_price,
+                    
                 },
             )
 
-        if "train_val_test_split" in steps:
+        if "train_val_test_split" in active_steps:
             mlflow.run(
                 f"{cfg.main.components_repository}/train_val_test_split",
                 entry_point="main",
@@ -59,7 +88,7 @@ if __name__ == "__main__":
                 },
             )
 
-        if "train_random_forest" in steps:
+        if "train_random_forest" in active_steps:
             mlflow.run(
                 f"{cfg.main.components_repository}/train_random_forest",
                 entry_point="main",
@@ -74,4 +103,5 @@ if __name__ == "__main__":
                 },
             )
 
-    run_pipeline()
+if __name__ == "__main__":
+    go()
