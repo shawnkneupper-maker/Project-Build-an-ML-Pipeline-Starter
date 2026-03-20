@@ -43,9 +43,9 @@ def go(args):
     run.config.update(args)
 
     # Load RF configuration
-    with open(args.rf_config) as fp:
-        rf_config = json.load(fp)
+    import ast
 
+    rf_config = ast.literal_eval(args.rf_config)
     run.config.update(rf_config)
 
     rf_config["random_state"] = args.random_seed
