@@ -3,7 +3,7 @@ conda_env: conda.yml
 entry_points:
   main:
     parameters:
-      sample: {type: path}
+      sample: {type: str}
       artifact_name: {type: str}
       artifact_type: {type: str}
       artifact_description: {type: str}
