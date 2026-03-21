@@ -16,7 +16,7 @@ is_signature_from_type_hint: false
 mlflow_version: 3.3.2
 model_id: null
 model_size_bytes: 21334234
-model_uuid: 5f138a6cae36428995dd55a45377b03b
+model_uuid: b334361f35ea48ff907ecfbd6ba4da99
 prompts: null
 saved_input_example_info:
   artifact_path: input_example.json
@@ -38,4 +38,4 @@ signature:
   outputs: '[{"type": "double", "required": true}]'
   params: null
 type_hint_from_example: false
-utc_time_created: '2026-03-21 15:35:16.216831'
+utc_time_created: '2026-03-21 16:34:49.488715'
