@@ -13,10 +13,7 @@ _steps = [
     "data_check",
     "data_split",
     "train_random_forest",
-    # NOTE: We do not include this in the steps so it is not run by mistake.
-    # You first need to promote a model export to "prod" before you can run this,
-    # then you need to run this step explicitly
-#    "test_regression_model"
+    "test_regression_model"
 ]
 
 
@@ -104,9 +101,20 @@ def go(config: DictConfig):
                     "stratify_by": config["modeling"]["stratify_by"],
                     "rf_config": config["modeling"]["random_forest"],
                     "max_tfidf_features": config["modeling"]["max_tfidf_features"],
-                    "output_artifact": "random_forest_model.pkl",
+                    "output_artifact": "random_forest_export",
                 },
             )
+        if "test_regression_model" in active_steps:
+            mlflow.run(
+                f"{config['main']['components_repository']}/test_regression_model",
+                entry_point="main",
+                parameters={
+                    "mlflow_model": "random_forest_export:latest",
+                    "test_dataset": "test_data.csv:latest",
+                },
+            )
+                    
+
 
 if __name__ == "__main__":
     go()
